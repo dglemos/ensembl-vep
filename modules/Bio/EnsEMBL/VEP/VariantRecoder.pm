@@ -65,8 +65,7 @@ use base qw(Bio::EnsEMBL::VEP::Runner);
 
 use Bio::EnsEMBL::Utils::Exception qw(throw warning);
 use Bio::EnsEMBL::VEP::Runner;
-use Bio::EnsEMBL::VEP::Utils qw(find_in_ref merge_arrays);
-
+use Bio::EnsEMBL::VEP::Utils qw(find_in_ref merge_arrays);  
 
 =head2 new
 
@@ -104,13 +103,14 @@ sub new {
     buffer_size
   );
 
-  $config->{fields} ||= 'id,hgvsg,hgvsc,hgvsp';
+  $config->{fields} ||= 'id,hgvsg,hgvsc,hgvsp,spdi'; # 57 
 
-  my %set_fields = map {$_ => 1} ref($config->{fields}) eq 'ARRAY' ? @{$config->{fields}} : split(',', $config->{fields});
+  my %set_fields = map {$_ => 1} ref($config->{fields}) eq 'ARRAY' ? @{$config->{fields}} : split(',', $config->{fields}); 
 
   # do some trickery to make sure we're not running unnecessary code
   # this first one only switches on the HGVS options for the requested fields  
   $config->{$_} = 1 for grep {$_ =~ /^hgvs/} keys %set_fields;
+  $config->{$_} = 1 for grep {$_ =~ /^spdi/} keys %set_fields; # 57 
 
   # and this one switches on check_existing if the user wants variant IDs
   my %opt_map = ('id' => 'check_existing');
@@ -118,9 +118,9 @@ sub new {
 
   # set up/down distance to 0, we only want overlaps
   $config->{distance} = 0;
-  
-  my $self = $class->SUPER::new($config);
 
+  my $self = $class->SUPER::new($config);
+  
   return $self;
 }
 
@@ -142,9 +142,9 @@ sub init {
   my $self = shift;
 
   return 1 if $self->{_initialized};
-
+  
   $self->SUPER::init();
-
+  
   $self->internalise_warnings();
 
   return 1;
@@ -164,9 +164,9 @@ sub init {
 
 sub recode_all {
   my $self = shift;
-
+  
   $self->init();
-
+   
   my $results = $self->_get_all_results();
 
   $self->finish();
@@ -189,11 +189,11 @@ sub recode_all {
 sub recode {
   my $self = shift;
   my $input = shift;
-
+  
   throw("ERROR: No input data supplied") unless $input;
 
   $self->param('input_data', $input);
-
+  
   $self->init();
   my $results = $self->_get_all_results();
 
@@ -233,18 +233,17 @@ sub reset {
 =cut
 
 sub _get_all_results {
-  my $self = shift;
-
+  my $self = shift;  
   my $results = {};
   my $order   = [];
+  
+  my %want_keys = map {$_ => 1} @{$self->param('fields')}; 
 
-  my %want_keys = map {$_ => 1} @{$self->param('fields')};
-
-  while(my $line = $self->next_output_line(1)) {
+  while(my $line = $self->next_output_line(1)) { 
     delete($line->{id});
     my $line_id = $line->{input};
-    
-    merge_arrays($order, [$line_id]);
+
+    merge_arrays($order, [$line_id]);   
     find_in_ref($line, \%want_keys, $results->{$line_id} ||= {input => $line_id});
 
     if(@{$self->warnings}) {

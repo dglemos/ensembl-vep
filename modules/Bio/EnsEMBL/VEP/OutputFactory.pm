@@ -82,6 +82,7 @@ use Bio::EnsEMBL::VEP::Constants;
 use Bio::EnsEMBL::VEP::OutputFactory::VEP_output;
 use Bio::EnsEMBL::VEP::OutputFactory::VCF;
 use Bio::EnsEMBL::VEP::OutputFactory::Tab;
+use Data::Dumper; 
 
 our $CAN_USE_JSON;
 
@@ -194,6 +195,7 @@ sub new {
     hgvsp
     hgvsg
     hgvsg_use_accession
+    spdi 
     sift
     polyphen
     polyphen_analysis
@@ -216,6 +218,7 @@ sub new {
     }
 
     my $class = 'Bio::EnsEMBL::VEP::OutputFactory::'.$FORMAT_MAP{$format};
+    
     return $class->new({%$hashref, config => $self->config});
   }
 
@@ -1142,7 +1145,7 @@ sub _add_custom_annotations_to_hash {
 sub VariationFeatureOverlapAllele_to_output_hash {
   my $self = shift;
   my ($vfoa, $hash, $vf) = @_;
-
+  
   my @ocs = sort {$a->rank <=> $b->rank} @{$vfoa->get_all_OverlapConsequences};
 
   # consequence type(s)
@@ -1154,19 +1157,28 @@ sub VariationFeatureOverlapAllele_to_output_hash {
 
   # allele
   $hash->{Allele} = $vfoa->variation_feature_seq;
-
+  print "^ ALLELE ", Dumper($hash->{Allele}); 
   # allele number
   $hash->{ALLELE_NUM} = $vfoa->allele_number if $self->{allele_number};
 
   # picked?
   $hash->{PICK} = 1 if defined($vfoa->{PICK});
-
+   
   # hgvs g.
   if($self->{hgvsg}) {
     $vf->{_hgvs_genomic} ||= $vf->hgvs_genomic($vf->slice, $self->{hgvsg_use_accession} ? undef : $vf->{chr});
-
+    
     if(my $hgvsg = $vf->{_hgvs_genomic}->{$hash->{Allele}}) {
-      $hash->{HGVSg} = $hgvsg;
+      $hash->{HGVSg} = $hgvsg; 
+    }
+  }
+
+  if($self->{spdi}) { 
+    $vf->{_spdi_genomic} = $vf->spdi_genomic(); 
+    print "^ ", Dumper($vf->{_spdi_genomic});  
+    if(my $spdi = $vf->{_spdi_genomic}->{$hash->{Allele}}){ 
+      print " ^ ", Dumper($spdi), "\n";  
+      $hash->{spdi} = $spdi;  
     }
   }
 
@@ -1189,7 +1201,7 @@ sub VariationFeatureOverlapAllele_to_output_hash {
   foreach my $ex(@{$vf->{existing} || []}) {
     $self->add_colocated_frequency_data($vf, $hash, $ex);
   }
-
+  # print "cena dasskfhsdjkfsaldfjlskJFLKSDKFLJSDKLFJKLSL |||||||", Dumper($hash), "\n";  
   return $hash;
 }
 

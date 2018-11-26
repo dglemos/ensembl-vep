@@ -73,16 +73,18 @@ use Bio::EnsEMBL::VEP::Parser::VEP_input;
 use Bio::EnsEMBL::VEP::Parser::ID;
 use Bio::EnsEMBL::VEP::Parser::HGVS;
 use Bio::EnsEMBL::VEP::Parser::Region;
+use Bio::EnsEMBL::VEP::Parser::SPDI; # 57 
 
 use Scalar::Util qw(openhandle looks_like_number);
-use FileHandle;
+use FileHandle; 
 
 my %FORMAT_MAP = (
   'vcf'     => 'VCF',
   'ensembl' => 'VEP_input',
   'id'      => 'ID',
   'hgvs'    => 'HGVS',
-  'region'  => 'Region'
+  'region'  => 'Region',
+  'spdi'    => 'SPDI' # 57 
 );
 
 
@@ -136,7 +138,7 @@ sub new {
     if(lc($format) eq 'guess' || lc($format) eq 'detect' || lc($format) eq 'auto') {
       $format = $self->detect_format();
     }
-
+    
     throw("ERROR: Can't detect format\n") unless $format;
 
     $format = lc($format);
@@ -147,6 +149,7 @@ sub new {
     $self->param('format', $format);
 
     my $class = 'Bio::EnsEMBL::VEP::Parser::'.$FORMAT_MAP{$format};
+     
     return $class->new({%$hashref, config => $self->config, delimiter => $self->delimiter});
   }
 
@@ -166,7 +169,7 @@ sub new {
 =cut
 
 sub next {
-  my $self = shift;
+  my $self = shift; 
 
   my $cache = $self->{_vf_cache} ||= [];
 
@@ -414,13 +417,21 @@ sub detect_format {
       $data[0] =~ /^[^\:]+\:\d+\-\d+(\:[\-\+]?1)?[\/\:](ins|dup|del|[ACGTN-]+)$/i
     ) {
       $format = 'region';
-    }
-
-    # HGVS: ENST00000285667.3:c.1047_1048insC
+    } 
+    # 57  
+    # SPDI: NC_000016.10:68684738:G:A 
     elsif (
       scalar @data == 1 &&
+      $data[0] =~ /^([^\:]+)\:([0-9]+)\:([a-z]+|[0-9]+|):([a-z]+|)$/i 
+    ) {    
+      $format = 'spdi'; 
+    }
+    # 57 
+    # HGVS: ENST00000285667.3:c.1047_1048insC
+    elsif ( 
+      scalar @data == 1 &&
       $data[0] =~ /^([^\:]+)\:.*?([cgmrp]?)\.?([\*\-0-9]+.*)$/i
-    ) {
+    ) {    
       $format = 'hgvs';
     }
 
@@ -479,8 +490,7 @@ sub detect_format {
     }
 
     last;
-  }
-
+  }   
   return $format;
 }
 
@@ -779,7 +789,7 @@ sub validate_svf {
 sub post_process_vfs {
   my $self = shift;
   my $vfs = shift;
-
+    
   # map to LRGs
   $vfs = $self->map_to_lrg($vfs) if $self->{lrg};
 
