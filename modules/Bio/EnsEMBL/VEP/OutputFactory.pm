@@ -81,8 +81,7 @@ use Bio::EnsEMBL::VEP::Constants;
 
 use Bio::EnsEMBL::VEP::OutputFactory::VEP_output;
 use Bio::EnsEMBL::VEP::OutputFactory::VCF;
-use Bio::EnsEMBL::VEP::OutputFactory::Tab;
-use Data::Dumper; 
+use Bio::EnsEMBL::VEP::OutputFactory::Tab; 
 
 our $CAN_USE_JSON;
 
@@ -1157,7 +1156,7 @@ sub VariationFeatureOverlapAllele_to_output_hash {
 
   # allele
   $hash->{Allele} = $vfoa->variation_feature_seq;
-  print "^ ALLELE ", Dumper($hash->{Allele}); 
+   
   # allele number
   $hash->{ALLELE_NUM} = $vfoa->allele_number if $self->{allele_number};
 
@@ -1175,9 +1174,8 @@ sub VariationFeatureOverlapAllele_to_output_hash {
 
   if($self->{spdi}) { 
     $vf->{_spdi_genomic} = $vf->spdi_genomic(); 
-    print "^ ", Dumper($vf->{_spdi_genomic});  
-    if(my $spdi = $vf->{_spdi_genomic}->{$hash->{Allele}}){ 
-      print " ^ ", Dumper($spdi), "\n";  
+      
+    if(my $spdi = $vf->{_spdi_genomic}->{$hash->{Allele}}){
       $hash->{spdi} = $spdi;  
     }
   }
@@ -1201,7 +1199,7 @@ sub VariationFeatureOverlapAllele_to_output_hash {
   foreach my $ex(@{$vf->{existing} || []}) {
     $self->add_colocated_frequency_data($vf, $hash, $ex);
   }
-  # print "cena dasskfhsdjkfsaldfjlskJFLKSDKFLJSDKLFJKLSL |||||||", Dumper($hash), "\n";  
+
   return $hash;
 }
 

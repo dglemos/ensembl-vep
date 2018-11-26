@@ -76,7 +76,6 @@ use Bio::EnsEMBL::VEP::Utils qw(merge_arrays);
 use Bio::EnsEMBL::Utils::Scalar qw(assert_ref);
 use Bio::EnsEMBL::Utils::Exception qw(throw warning);
 use Bio::EnsEMBL::IO::ListBasedParser;
-use Data::Dumper; 
 
 =head2 new
 
