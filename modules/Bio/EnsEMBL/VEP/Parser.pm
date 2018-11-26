@@ -73,7 +73,7 @@ use Bio::EnsEMBL::VEP::Parser::VEP_input;
 use Bio::EnsEMBL::VEP::Parser::ID;
 use Bio::EnsEMBL::VEP::Parser::HGVS;
 use Bio::EnsEMBL::VEP::Parser::Region;
-use Bio::EnsEMBL::VEP::Parser::SPDI; # 57 
+use Bio::EnsEMBL::VEP::Parser::SPDI;
 
 use Scalar::Util qw(openhandle looks_like_number);
 use FileHandle; 
@@ -84,7 +84,7 @@ my %FORMAT_MAP = (
   'id'      => 'ID',
   'hgvs'    => 'HGVS',
   'region'  => 'Region',
-  'spdi'    => 'SPDI' # 57 
+  'spdi'    => 'SPDI'
 );
 
 
@@ -418,7 +418,7 @@ sub detect_format {
     ) {
       $format = 'region';
     } 
-    # 57  
+     
     # SPDI: NC_000016.10:68684738:G:A 
     elsif (
       scalar @data == 1 &&
@@ -426,7 +426,7 @@ sub detect_format {
     ) {    
       $format = 'spdi'; 
     }
-    # 57 
+    
     # HGVS: ENST00000285667.3:c.1047_1048insC
     elsif ( 
       scalar @data == 1 &&

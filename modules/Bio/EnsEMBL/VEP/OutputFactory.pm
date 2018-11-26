@@ -1171,7 +1171,7 @@ sub VariationFeatureOverlapAllele_to_output_hash {
       $hash->{HGVSg} = $hgvsg; 
     }
   }
-
+  # spdi
   if($self->{spdi}) { 
     $vf->{_spdi_genomic} = $vf->spdi_genomic(); 
       
