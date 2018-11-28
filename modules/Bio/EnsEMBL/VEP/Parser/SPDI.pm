@@ -27,26 +27,26 @@ limitations under the License.
 
 =cut
 
-# EnsEMBL module for Bio::EnsEMBL::VEP::Parser::HGVS
+# EnsEMBL module for Bio::EnsEMBL::VEP::Parser::SPDI
 #
 #
 
 =head1 NAME
 
-Bio::EnsEMBL::VEP::Parser::HGVS - HGVS list input parser
+Bio::EnsEMBL::VEP::Parser::HGVS - SPDI list input parser
 
 =head1 SYNOPSIS
 
-my $parser = Bio::EnsEMBL::VEP::Parser::HGVS->new({
+my $parser = Bio::EnsEMBL::VEP::Parser::SPDI->new({
   config => $config,
-  file   => 'hgvs.txt',
+  file   => 'spdi.txt',
 });
 
 my $vf = $parser->next();
 
 =head1 DESCRIPTION
 
-HGVS format parser.
+SPDI format parser.
 
 See http://varnomen.hgvs.org/ for spec.
 
@@ -96,7 +96,7 @@ use Bio::EnsEMBL::IO::ListBasedParser;
 sub new {
   my $caller = shift;
   my $class = ref($caller) || $caller;
-  
+
   my $self = $class->SUPER::new(@_);
 
   # requires db connection
@@ -129,7 +129,7 @@ sub parser {
 
   Example    : $vfs = $parser->create_VariationFeatures();
   Description: Create a VariationFeature object from the current line
-               of input. 
+               of input.
   Returntype : arrayref of Bio::EnsEMBL::VariationFeature
   Exceptions : warns if unable to parse SPDI string
   Caller     : next()
@@ -140,9 +140,9 @@ sub parser {
 sub create_VariationFeatures {
   my $self = shift;
 
-  my $parser = $self->parser;   
+  my $parser = $self->parser;
   $parser->next();
-   
+
   $self->skip_empty_lines();
 
   return [] unless $parser->{record};
@@ -154,10 +154,10 @@ sub create_VariationFeatures {
   # remove whitespace
   $spdi =~ s/\s+//g;
 
-  my $param_core_group = $self->param('core_type'); 
+  my $param_core_group = $self->param('core_type');
 
   my @core_groups = sort {($b eq $param_core_group) cmp ($a eq $param_core_group)} qw(core otherfeatures);
-  
+
   my $vfa = $self->get_adaptor('variation', 'VariationFeature');
   my $vfs = [];
   my @errors;
@@ -165,19 +165,19 @@ sub create_VariationFeatures {
   foreach my $core_group(@core_groups) {
     my $sa  = $self->get_adaptor($core_group, 'Slice');
     my $ta  = $self->get_adaptor($core_group, 'Transcript');
-    
+
     # not all spdi notations are supported yet, so we have to wrap it in an eval
     eval {
       # if($self->{ambiguous_spdi}) {
-      #   print " *** CHECK *** INSIDE SPDI IT IS AMBIGUOUS\n";  
+      #   print " *** CHECK *** INSIDE SPDI IT IS AMBIGUOUS\n";
       #   $vfs = $vfa->fetch_all_possible_by_hgvs_notation(
       #     -spdi               => $spdi,
       #     -slice_adaptor      => $sa,
       #     -transcript_adaptor => $ta,
       #     -replace_ref        => $self->{lookup_ref} || 0,
       #   );
-      # } 
-      # else {    
+      # }
+      # else {
         push @$vfs, $vfa->fetch_by_spdi_notation(
           -spdi               => $spdi,
           -slice_adaptor      => $sa,
@@ -195,25 +195,18 @@ sub create_VariationFeatures {
 
   unless(@$vfs || scalar(@errors) == 0) {
     my %known_messages_hash = ('MSG: Region requested must be smaller than 5kb' => 0);
-    
+
     my @grep_names = grep(/^MSG:/, split(/\n/, $errors[0]));
     my @error_message = exists( $known_messages_hash{$grep_names[0]}) ? @grep_names : @errors;
-    
+
     $self->warning_msg("WARNING: Unable to parse SPDI notation \'$spdi\'\n".join("\n", @error_message));
     return $self->create_VariationFeatures;
   }
 
-  # warn if this looks like a gene
-  if($spdi =~ /\:[cnp]\./ && $spdi !~ /^(ENS|[NX][CGMRP]\_|LRG\_)/) {
+  # throw error if reference sequence is not genomic
+  if($spdi !~ /^(NC\_|CHR|([0-9]{1,2}\:|X\:|Y\:))/i) {
     my $gene_name = (split(':', $spdi))[0];
-    $self->warning_msg(
-      "WARNING: Possible invalid use of gene name '$gene_name' as SPDI reference; ".
-      (
-        $self->{ambiguous_spdi} ?
-        "$spdi may resolve to multiple genomic locations" :
-        "most likely transcript will be selected"
-      )
-    );
+    throw("Invalid reference sequence '$gene_name' as SPDI reference");
   }
 
   foreach my $vf(@$vfs) {
