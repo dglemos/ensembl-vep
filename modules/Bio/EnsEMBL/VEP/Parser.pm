@@ -422,7 +422,7 @@ sub detect_format {
     # SPDI: NC_000016.10:68684738:G:A 
     elsif (
       scalar @data == 1 &&
-      $data[0] =~ /^([^\:]+)\:([0-9]+)\:([a-z]+|[0-9]+|):([a-z]+|)$/i 
+      $data[0] =~ /^(.*?\:){2}([^\:]+|)$/i 
     ) {    
       $format = 'spdi'; 
     }
