@@ -82,6 +82,8 @@ use Bio::EnsEMBL::VEP::OutputFactory::VEP_output;
 use Bio::EnsEMBL::VEP::OutputFactory::VCF;
 use Bio::EnsEMBL::VEP::OutputFactory::Tab;
 
+use Data::Dumper;
+
 our $CAN_USE_JSON;
 
 BEGIN {
@@ -194,6 +196,7 @@ sub new {
     mirna
     ambiguity
     var_synonyms
+    variant_synonyms
 
     total_length
     hgvsc
@@ -889,6 +892,11 @@ sub VariationFeature_to_output_hash {
     }
   }
 
+  # get variation synonyms
+  my $var_synonyms = $vf->get_var_synonyms();
+  print "\nVAR SYNONYMS: ", Dumper($var_synonyms), " --- \n";
+  $hash->{variant_synonyms} = $var_synonyms;
+
   # overlapping SVs
   if($vf->{overlapping_svs}) {
     $hash->{SV} = [sort keys %{$vf->{overlapping_svs}}];
@@ -1003,7 +1011,9 @@ sub add_colocated_variant_info {
     push @{$hash->{Existing_variation}}, $ex->{variation_name} if $ex->{variation_name};
 
     # Variation Synonyms
-    push @{$hash->{VAR_SYNONYMS}}, $ex->{var_synonyms} if $self->{var_synonyms} && $ex->{var_synonyms}; 
+    push @{$hash->{VAR_SYNONYMS}}, $ex->{var_synonyms} if $self->{var_synonyms} && $ex->{var_synonyms};
+
+    #print "HERE: ", Dumper($ex->{var_synonyms}); 
 
     # Find allele specific clin_sig data if it exists
     if(defined($ex->{clin_sig_allele}) && $self->{clin_sig_allele} )
@@ -1293,6 +1303,8 @@ sub VariationFeatureOverlapAllele_to_output_hash {
   foreach my $ex(@{$vf->{existing} || []}) {
     $self->add_colocated_frequency_data($vf, $hash, $ex, $vfoa->{shift_hash});
   }
+
+  #print Dumper $hash;
 
   return $hash;
 }
