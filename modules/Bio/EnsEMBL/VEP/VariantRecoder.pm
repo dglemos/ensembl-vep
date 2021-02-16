@@ -70,8 +70,6 @@ use Bio::EnsEMBL::Variation::VariationFeature;
 use Bio::EnsEMBL::Variation::Utils::VEP;
 use Bio::EnsEMBL::Utils::Sequence qw(reverse_comp);
 
-use Data::Dumper;
-
 =head2 new
 
   Arg 1      : hashref $config
@@ -127,6 +125,10 @@ sub new {
   if($config->{vcf_string}){
     $config->{fields} = $config->{fields} . ',vcf_string';
   }
+
+  # if($config->{variant_synonyms}){
+  #   $config->{fields} = $config->{fields} . ',variant_synonyms';
+  # }
 
   my $self = $class->SUPER::new($config);
 
@@ -260,6 +262,10 @@ sub _get_all_results {
     $keys_no_allele{'vcf_string'} = 1;
     delete($want_keys{'vcf_string'});
   }
+  if($want_keys{'variant_synonyms'}) {
+    $keys_no_allele{'variant_synonyms'} = 1;
+    delete($want_keys{'variant_synonyms'});
+  }
 
   while(my $line = $self->next_output_line(1)) {
     delete($line->{id});
@@ -379,15 +385,13 @@ sub _get_all_results {
     ################################
     ####### Variant synonyms #######
     # Attach variant synonyms to hash by allele
-    if($line->{'variant_synonyms'}) {
-      print "HERE: ", Dumper($line->{'variant_synonyms'});
-    }
- 
+    if($line->{'variant_synonyms'} && $keys_no_allele{'variant_synonyms'}) {
+      foreach my $key_allele (keys %{$line_by_allele{'consequences'}}) {
+      $vcf_string_by_allele{$key_allele}->{'variant_synonyms'} = $line->{'variant_synonyms'};
+      }
+    } 
 
     merge_arrays($order, [$line_id]);
-
-    print "CONSEQUENCES: ", Dumper($line_by_allele{'consequences'});
-    print "VCF: ", Dumper(\%vcf_string_by_allele);
 
     foreach my $allele (keys %{$line_by_allele{'consequences'}}) {
       find_in_ref($line_by_allele{'consequences'}->{$allele}, \%want_keys, $results->{$line_id}->{$allele} ||= {input => $line_id});
