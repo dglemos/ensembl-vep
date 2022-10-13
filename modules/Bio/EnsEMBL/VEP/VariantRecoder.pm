@@ -136,6 +136,10 @@ sub new {
     $config->{fields} = $config->{fields} . ',var_synonyms';
   }
 
+  if($config->{gene_symbol}){
+    $config->{fields} = $config->{fields} . ',gene_symbol';
+  }
+
   # return MANE Select transcripts
   # switches on hgvsg, hgvsc and hgvsp
   if($config->{mane_select}){
@@ -286,6 +290,11 @@ sub _get_all_results {
     delete($want_keys{'var_synonyms'});
   }
 
+  if($want_keys{'gene_symbol'}) {
+    $keys_no_allele{'gene_symbol'} = 1;
+    delete($want_keys{'gene_symbol'});
+  }
+
   # store MANE key in a separate hash to distingish it from mane_select coming from vep
   my %key_mane;
   my %mane_unique_keys;
@@ -415,6 +424,24 @@ sub _get_all_results {
       }
     }
     ####### ID #######
+    ##################
+
+    ##################
+    ## Gene symbol ###
+    # only return gene symbol if ID is selected
+    # the gene symbol is used to create the HGMD url in web VR
+    if($keys_no_allele{'id'} && $keys_no_allele{'gene_symbol'}) {
+      my $gene_id = $consequences->[0]->{'gene_id'};
+      my $gene_adaptor = $self->get_adaptor('Core', 'Gene');
+      if($gene_id) {
+        my $gene_obj = $gene_adaptor->fetch_by_stable_id($gene_id);
+        my $gene_name = $gene_obj->external_name();
+        foreach my $key_allele (keys %{$line_by_allele{'consequences'}}) {
+          $vcf_string_by_allele{$key_allele}->{'gene_symbol'} = $gene_name;
+        }
+      }
+    }
+    ## Gene symbol ###
     ##################
 
     ################################
