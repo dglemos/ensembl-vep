@@ -415,7 +415,7 @@ sub _get_all_results {
         }
       }
       # Link the COSMIC and HGMD IDs to all alleles
-      if(scalar(@ids_no_allele) != 0) { 
+      if(scalar(@ids_no_allele) != 0) {
         foreach my $key_allele (keys %{$line_by_allele{'consequences'}}) {
           foreach my $id_no_allele (@ids_no_allele) {
             push @{$vcf_string_by_allele{$key_allele}->{'id'}}, $id_no_allele;
@@ -448,7 +448,7 @@ sub _get_all_results {
     ####### Variant synonyms #######
     # Attach variant synonyms to hash by allele
     if($line->{'var_synonyms'} && $keys_no_allele{'var_synonyms'}) {
-      # If there are no synonyms try to get the synonyms for one of the colocated variants
+      # If there are no synonyms try to get the synonyms from one of the colocated variants
       if($id_bk && scalar(@{$line->{'var_synonyms'}}) == 0) {
         my $va = $self->get_adaptor('variation', 'Variation');
         my $variation = $va->fetch_by_name($id_bk);
