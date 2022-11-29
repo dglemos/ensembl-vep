@@ -802,6 +802,7 @@ sub post_process_vfs {
   $vfs = $self->map_to_lrg($vfs) if $self->{lrg};
 
   # minimise alleles?
+
   $vfs = $self->minimise_alleles($vfs) if $self->{minimal};
 
   # copy start, end coords to seq_region_start, seq_region_end
@@ -897,6 +898,11 @@ sub minimise_alleles {
 
   my @return;
 
+  my $is_vcf;
+  if($self->isa('Bio::EnsEMBL::VEP::Parser::VCF')) {
+    $is_vcf = 1;
+  }
+
   foreach my $vf(@$vfs) {
 
     # skip VFs with more than one alt
@@ -914,7 +920,13 @@ sub minimise_alleles {
         my $start = $vf->{start};
         my $end   = $vf->{end};
 
+	my $ref_bk = $ref;
         ($ref, $alt, $start, $end) = @{trim_sequences($ref, $alt, $start, $end, 1)};
+
+        if($ref_bk ne $ref) {
+	  $start--;
+	  $end--;
+	}
 
         # create a copy
         my $new_vf;
