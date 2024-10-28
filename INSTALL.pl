@@ -265,7 +265,8 @@ $CACHE_URL_INDEXED = $CACHE_URL;
 $CACHE_URL  ||= "https://ftp.ensembl.org/pub/release-$DATA_VERSION/variation/vep";
 $CACHE_URL_INDEXED  ||= "https://ftp.ensembl.org/pub/release-$DATA_VERSION/variation/indexed_vep_cache";
 $FASTA_URL  ||= "https://ftp.ensembl.org/pub/release-$DATA_VERSION/fasta/";
-$PLUGIN_URL ||= 'https://raw.githubusercontent.com/Ensembl/VEP_plugins';
+$FASTA_URL_37  ||= "https://ftp.ensembl.org/pub/grch37/release-$DATA_VERSION/fasta/";
+$PLUGIN_URL    ||= 'https://raw.githubusercontent.com/Ensembl/VEP_plugins';
 
 # using PREFER_BIN can save memory when extracting archives
 $PREFER_BIN = 0 unless defined($PREFER_BIN);
@@ -1379,7 +1380,7 @@ sub fasta() {
     # change URL to point to last e! version that had GRCh37 downloads
     elsif(is_url($FASTA_URL)) {
       print "\nWARNING: Changing URL for GRCh37\n";
-      $FASTA_URL =~ s/$DATA_VERSION/75/;
+      $FASTA_URL = $FASTA_URL_37;
     }
   }
 
@@ -1404,6 +1405,7 @@ sub fasta() {
   my @dirs = ();
 
   if(is_url($FASTA_URL)) {
+    print "-> FASTA: $FASTA_URL\n";
     $FASTA_URL =~ m/(.*:\/\/)?(.+?)\/(.+)/;
     $ftp = Net::FTP->new($2, Passive => 1) or die "ERROR: Could not connect to FTP host $2\n$@\n";
     $ftp->login($FTP_USER) or die "ERROR: Could not login as $FTP_USER\n$@\n";
